@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.getElementById('uploadButton');
     const fileInput = document.getElementById('fileInput');
     const fileList = document.getElementById('fileList');
+    const uploadForm = document.getElementById('myForm');
 
     uploadButton.addEventListener('click', () => {
         fileInput.click();
@@ -9,47 +10,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     fileInput.addEventListener('change', handleFileSelect);
 
-    function handleFileSelect(event) {
+    async function handleFileSelect(event) {
         const files = event.target.files;
-        fileList.innerHTML = '';  // Clear any existing files
+        fileList.innerHTML = ''; // Clear any existing files
+
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             const fileElement = document.createElement('div');
             fileElement.classList.add('uploaded');
-            
+
             fileElement.innerHTML = `
-                <i class="far fa-file"></i>
                 <div class="file">
                     <div class="file__name">
                         <p>${file.name}</p>
-                        <i class="fas fa-times" onclick="removeFile(this)"></i>
-                    </div>
-                    <div class="progress">
-                        <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" style="width:0%"></div>
                     </div>
                 </div>
             `;
-            fileList.appendChild(fileElement);
 
-            // Simulate file upload progress
-            simulateProgress(fileElement.querySelector('.progress-bar'));
+            fileList.appendChild(fileElement);
+        }
+
+        // Automatically submit the form to start the conversion
+        if (files.length > 0) {
+            const formData = new FormData(uploadForm);
+
+            try {
+                const response = await fetch('/convert', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'converted.docx'; // Default filename
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                } else {
+                    const data = await response.json();
+                    console.error('Conversion error:', data.error);
+                }
+            } catch (error) {
+                console.error('Error during conversion:', error);
+            }
         }
     }
-
-    function simulateProgress(progressBar) {
-        let width = 0;
-        const interval = setInterval(() => {
-            if (width >= 100) {
-                clearInterval(interval);
-            } else {
-                width += 10;
-                progressBar.style.width = width + '%';
-            }
-        }, 100);
-    }
 });
-
-function removeFile(element) {
-    const fileElement = element.closest('.uploaded');
-    fileElement.remove();
-}
