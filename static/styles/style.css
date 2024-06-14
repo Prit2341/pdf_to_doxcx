@@ -84,3 +84,20 @@ body {
   font-size: 40px;
   color: #0c3214;
 }
+
+/* === Progress Bar === */
+.progress-container {
+  width: 100%;
+  background-color: #f3f3f3;
+  border-radius: 25px;
+  margin: 20px 0;
+}
+.progress-bar {
+  width: 0%;
+  height: 25px;
+  background-color: #4caf50;
+  border-radius: 25px;
+  text-align: center;
+  line-height: 25px;
+  color: white;
+}
